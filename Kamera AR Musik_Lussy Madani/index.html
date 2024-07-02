@@ -1,0 +1,245 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<!-- AR libraries -->
+		<script src="https://aframe.io/releases/0.9.2/aframe.min.js"></script>
+		<script src="https://raw.githack.com/jeromeetienne/AR.js/master/aframe/build/aframe-ar.min.js"></script>
+		<script src="https://raw.githack.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
+		<!-- library to manipulate audio -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.0/howler.js" integrity="sha512-ZwRMM/apuAKDgOzzCM37VgAiaXCdI6DPMNAsHOLLH85vD6SAR0ROUb8TxecaMmt4e6KDFB3kpQxSBCMxAt12og==" crossorigin="anonymous"></script>
+		<style>
+			#mainPage, #markerPage {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background-color: #f0f0f0;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				z-index: 1000;
+			}
+			button {
+				font-size: 1.2em;
+				padding: 10px 20px;
+				margin: 10px;
+				cursor: pointer;
+			}
+			#markerPage {
+				display: none;
+			}
+			#barcodes {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+			}
+			#barcodes img {
+				width: 200px;
+				height: 200px;
+				margin: 10px;
+			}
+			/* Nieuwe stijlen voor knoppen en titel op de hoofdpagina */
+			#mainPage h1 {
+				font-family: 'Arial', sans-serif;
+				font-size: 2.5em;
+				color: #333;
+				text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+				margin-bottom: 30px;
+			}
+			#mainPage button {
+				background-color: #4CAF50;
+				color: white;
+				border: none;
+				border-radius: 25px;
+				padding: 15px 30px;
+				transition: all 0.3s ease;
+				box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+			}
+			#mainPage button:hover {
+				background-color: #45a049;
+				transform: translateY(-2px);
+				box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+			}
+		</style>
+	</head>
+
+	<body style="margin: 0; overflow: hidden;">
+		<div id="mainPage">
+			<h1>AR Musical Instrument</h1>
+			<button id="startButton">Start</button>
+			<button id="markerButton">Marker</button>
+			<button id="panduanButton">Panduan</button> <!-- Tombol untuk menuju halaman panduan -->
+		</div>
+
+		<div id="markerPage">
+			<h2>Marker Barcodes</h2>
+			<div id="barcodes">
+				<img src="markers/marker 1.jpg" alt="Marker 1">
+				<img src="markers/marker 2.jpg" alt="Marker 2">
+				<img src="markers/marker 3.jpg" alt="Marker 3">
+				<img src="markers/marker 4.jpg" alt="Marker 4">
+			</div>
+			<button id="backButton">Back</button>
+		</div>
+
+		<a-scene embedded arjs="detectionMode: mono_and_matrix; matrixCodeType: 3x3; debugUIEnabled: false;">
+		   
+			<!-- all virtual obejects -->
+			<a-assets>
+				<img src="./assets/drums.png" id="drums-img">
+				<img src="./assets/guitar.png" id="guitar-img">
+				<img src="./assets/mic.png" id="mic-img">
+				<img src="./assets/piano.png" id="piano-img">
+			</a-assets>
+
+            <!-- marker identifiers -->
+			<a-marker id="drums-marker" type="barcode" value="0">
+				<a-image src="#drums-img" rotation="90 0 0"></a-image>
+			</a-marker>
+
+			<a-marker id="guitar-marker" type="barcode" value="1">
+				<a-image src="#guitar-img" rotation="90 0 0"></a-image>
+			</a-marker>
+
+			<a-marker id="mic-marker" type="barcode" value="2">
+				<a-image src="#mic-img" rotation="90 0 0"></a-image>
+			</a-marker>
+
+			<a-marker id="piano-marker" type="barcode" value="3">
+				<a-image src="#piano-img" rotation="90 0 0"></a-image>
+			</a-marker>
+
+			<!-- camera permissions -->
+			<a-entity camera></a-entity>
+
+		</a-scene>
+		
+		<script>
+			// music files
+			var piano = new Howl({
+				src: ['./audio/piano.mp3']
+			});
+
+			var drums = new Howl({
+				src: ['./audio/drums.mp3']
+			});
+
+			var guitar = new Howl({
+				src: ['./audio/guitar.mp3']
+			});
+
+			var mic = new Howl({
+				src: ['./audio/mic.mp3']
+			});
+
+	        //play music
+			mic.play();
+			drums.play();
+			piano.play();
+			guitar.play();
+	        
+			//functions to mute and unmute audio
+			function removeDrums() {
+				drums.mute(true);
+			}
+
+			function addDrums() {
+				drums.mute(false);
+			}
+
+			function removeMic() {
+				mic.mute(true);
+			}
+
+			function addMic() {
+				mic.mute(false);
+			}
+
+			function removeGuitar() {
+				guitar.mute(true);
+			}
+
+			function addGuitar() {
+				guitar.mute(false);
+			}
+
+			function removePiano() {
+				piano.mute(true);
+			}
+
+			function addPiano() {
+				piano.mute(false);
+			}
+
+			//functions to merge music with AR
+			window.onload = function () {
+				const drumsMarker = document.getElementById('drums-marker');
+				drumsMarker.addEventListener('markerFound', function () {
+					addDrums();
+				});
+				drumsMarker.addEventListener('markerLost', function () {
+					removeDrums();
+				});
+
+				const pianoMarker = document.getElementById('piano-marker');
+				pianoMarker.addEventListener('markerFound', function () {
+					addPiano();
+				});
+				pianoMarker.addEventListener('markerLost', function () {
+					removePiano();
+				});
+
+				const micMarker = document.getElementById('mic-marker');
+				micMarker.addEventListener('markerFound', function () {
+					addMic();
+				});
+				micMarker.addEventListener('markerLost', function () {
+					removeMic();
+				});
+
+				const guitarMarker = document.getElementById('guitar-marker');
+				guitarMarker.addEventListener('markerFound', function () {
+					addGuitar();
+				});
+				guitarMarker.addEventListener('markerLost', function () {
+					removeGuitar();
+				});
+
+				// Event listener untuk tombol "Panduan"
+				const panduanButton = document.getElementById('panduanButton');
+				panduanButton.addEventListener('click', function() {
+					window.location.href = 'tutorial.html'; // Mengarahkan ke halaman tutorial
+				});
+
+				// Tambahan untuk halaman utama dan halaman marker
+				const startButton = document.getElementById('startButton');
+				const markerButton = document.getElementById('markerButton');
+				const backButton = document.getElementById('backButton');
+				const mainPage = document.getElementById('mainPage');
+				const markerPage = document.getElementById('markerPage');
+				const arScene = document.querySelector('a-scene');
+
+				startButton.addEventListener('click', function() {
+					mainPage.style.display = 'none';
+					arScene.style.display = 'block';
+				});
+
+				markerButton.addEventListener('click', function() {
+					mainPage.style.display = 'none';
+					markerPage.style.display = 'flex';
+				});
+
+				backButton.addEventListener('click', function() {
+					markerPage.style.display = 'none';
+					mainPage.style.display = 'flex';
+				});
+
+				// Sembunyikan scene AR saat awal
+				arScene.style.display = 'none';
+			}
+		</script>
+	</body>
+</html>
